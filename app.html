@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bike or Bus? - the morning commute decision, solved</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; background:#0b1526; color:#e3f0ff; min-height:100vh; padding-bottom:50px; }
+  header { text-align:center; padding:32px 16px 4px; }
+  header h1 { font-size:30px; font-weight:800; }
+  header h1 span { color:#38bdf8; }
+  header p { color:#6d84a3; margin-top:6px; font-size:15px; }
+  .wrap { max-width:640px; margin:0 auto; padding:0 16px; }
+  .search { display:flex; gap:8px; margin-top:20px; }
+  .search input { flex:1; background:#101d33; border:1px solid #23405f; border-radius:12px; color:#e3f0ff; font-size:16px; padding:13px 16px; outline:none; }
+  .search input:focus { border-color:#38bdf8; }
+  .search button { background:linear-gradient(135deg,#38bdf8,#0284c7); border:none; color:#04121f; font-size:15px; font-weight:700; padding:13px 20px; border-radius:12px; cursor:pointer; }
+  .geo { text-align:center; margin-top:10px; }
+  .geo button { background:none; border:none; color:#38bdf8; font-size:14px; cursor:pointer; text-decoration:underline; }
+  #status { text-align:center; color:#6d84a3; font-size:14px; min-height:22px; margin-top:12px; }
+  #result { display:none; margin-top:8px; }
+  .panel { background:#101d33; border:1px solid #1d3350; border-radius:16px; padding:20px; margin-top:14px; }
+  .scoreRow { display:flex; align-items:center; gap:20px; }
+  #dial { flex:0 0 130px; }
+  .verdict h2 { font-size:24px; font-weight:800; }
+  .verdict .city { color:#6d84a3; font-size:14px; margin-top:2px; }
+  .verdict .now { font-size:14px; color:#9db4d0; margin-top:10px; line-height:1.6; }
+  .reasons { margin-top:14px; }
+  .reasons div { font-size:13.5px; padding:7px 10px; border-radius:8px; margin-bottom:6px; background:#0b1526; color:#9db4d0; }
+  .reasons div b { color:#fbbf24; float:right; }
+  .reasons div.good b { color:#4ade80; }
+  #hours { display:flex; gap:8px; margin-top:6px; overflow-x:auto; padding-bottom:4px; }
+  .hr { flex:0 0 76px; background:#0b1526; border:1px solid #1d3350; border-radius:10px; padding:10px 6px; text-align:center; }
+  .hr .t { font-size:12px; color:#6d84a3; }
+  .hr .i { font-size:22px; margin:6px 0; }
+  .hr .tmp { font-size:15px; font-weight:700; }
+  .hr .pp { font-size:11.5px; color:#38bdf8; margin-top:2px; }
+  footer { text-align:center; color:#44597a; font-size:13px; margin-top:34px; line-height:1.7; }
+  footer a { color:#38bdf8; }
+</style>
+</head>
+<body>
+<header>
+  <h1>&#128690; Bike <span>or</span> &#128652; Bus?</h1>
+  <p>Live weather, one score, zero excuses.</p>
+</header>
+<div class="wrap">
+  <div class="search">
+    <input id="city" type="text" placeholder="Your city (e.g. Amsterdam)" autocomplete="off">
+    <button id="go">Decide</button>
+  </div>
+  <div class="geo"><button id="geoBtn">or use my current location</button></div>
+  <div id="status"></div>
+  <div id="result">
+    <div class="panel scoreRow">
+      <svg id="dial" viewBox="0 0 120 120" width="130" height="130">
+        <circle cx="60" cy="60" r="50" fill="none" stroke="#1d3350" stroke-width="11"/>
+        <circle id="arc" cx="60" cy="60" r="50" fill="none" stroke="#4ade80" stroke-width="11"
+          stroke-linecap="round" stroke-dasharray="314" stroke-dashoffset="314" transform="rotate(-90 60 60)"/>
+        <text id="scoreTxt" x="60" y="58" text-anchor="middle" fill="#e3f0ff" font-size="27" font-weight="800">-</text>
+        <text x="60" y="78" text-anchor="middle" fill="#6d84a3" font-size="10">BIKE SCORE</text>
+      </svg>
+      <div class="verdict">
+        <h2 id="vhead">-</h2>
+        <div class="city" id="vcity">-</div>
+        <div class="now" id="vnow">-</div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="reasons" id="reasons"></div>
+      <div id="hours"></div>
+    </div>
+  </div>
+</div>
+<footer>Live data from <a href="https://open-meteo.com">Open-Meteo</a>. No sign-up, no tracking.<br><a href="index.html">&larr; About</a> &nbsp;|&nbsp; Bike or Bus? &middot; idea #13 from the iLanis App Factory</footer>
+<script>
+var WMO={0:['Clear','&#9728;'],1:['Mostly clear','&#127780;'],2:['Partly cloudy','&#9925;'],3:['Overcast','&#9729;'],45:['Fog','&#127787;'],48:['Icy fog','&#127787;'],51:['Light drizzle','&#127782;'],53:['Drizzle','&#127782;'],55:['Heavy drizzle','&#127782;'],56:['Freezing drizzle','&#127782;'],57:['Freezing drizzle','&#127782;'],61:['Light rain','&#127783;'],63:['Rain','&#127783;'],65:['Heavy rain','&#127783;'],66:['Freezing rain','&#127783;'],67:['Freezing rain','&#127783;'],71:['Light snow','&#127784;'],73:['Snow','&#127784;'],75:['Heavy snow','&#127784;'],77:['Snow grains','&#127784;'],80:['Light showers','&#127781;'],81:['Showers','&#127781;'],82:['Violent showers','&#127781;'],85:['Snow showers','&#127784;'],86:['Snow showers','&#127784;'],95:['Thunderstorm','&#9889;'],96:['Storm + hail','&#9889;'],99:['Storm + hail','&#9889;']};
+function wmo(code){ return WMO[code]||['Unknown','&#10067;']; }
+/* pure scoring - testable headless */
+function computeScore(cur, next3){
+  var score=100, reasons=[];
+  function hit(cond,pts,txt){ if(cond){ score-=pts; reasons.push({pts:-pts,txt:txt}); } }
+  var at=cur.apparent_temperature;
+  if(at<10){ hit(true, Math.min(35,Math.round((10-at)*3)), 'Feels like '+Math.round(at)+'&deg;C - cold hands territory'); }
+  else if(at>26){ hit(true, Math.min(25,Math.round((at-26)*2.5)), 'Feels like '+Math.round(at)+'&deg;C - sweaty climb ahead'); }
+  else reasons.push({pts:0,txt:'Feels like '+Math.round(at)+'&deg;C - right in the comfort zone'});
+  var w=cur.wind_speed_10m, g=cur.wind_gusts_10m||w;
+  hit(w>15, Math.min(30,Math.round((w-15)*1.5)), 'Wind '+Math.round(w)+' km/h - you will feel it');
+  hit(g>35, Math.min(20,Math.round((g-35))), 'Gusts to '+Math.round(g)+' km/h - hold the handlebars');
+  if(w<=15) reasons.push({pts:0,txt:'Wind '+Math.round(w)+' km/h - calm'});
+  hit(cur.precipitation>0, 25, 'Raining right now ('+cur.precipitation+' mm)');
+  var maxP=0, maxPHr=-1;
+  next3.forEach(function(h,i){ if(h.precipitation_probability>maxP){maxP=h.precipitation_probability; maxPHr=i;} });
+  hit(maxP>=40, Math.round(maxP*0.35), maxP+'% chance of rain in the next few hours');
+  var c=cur.weather_code;
+  if(c>=95) hit(true,60,'Thunderstorm - hard no');
+  else if((c>=71&&c<=77)||c===85||c===86) hit(true,40,'Snow conditions');
+  else if(c===63||c===65||c===82||c===66||c===67) hit(true,35,'Heavy rain conditions');
+  else if(c===51||c===53||c===55||c===56||c===57||c===61||c===80||c===81) hit(true,15,'Light rain or drizzle');
+  else if(c===45||c===48) hit(true,10,'Fog - drivers can\'t see you');
+  score=Math.max(0,Math.min(100,score));
+  return {score:score,reasons:reasons};
+}
+function verdict(s){
+  if(s>=80) return 'Perfect - ride the bike.';
+  if(s>=60) return 'Bike it. Good weather.';
+  if(s>=40) return 'Rideable, but pack a layer.';
+  if(s>=20) return 'Take the bus today.';
+  return 'Absolutely not. Bus. Or bed.';
+}
+function dialColor(s){ return s>=60?'#4ade80':(s>=40?'#fbbf24':'#f87171'); }
+function $(id){return document.getElementById(id);}
+function setStatus(t){ $('status').textContent=t; }
+async function decide(lat,lon,label){
+  setStatus('Fetching live weather...');
+  var url='https://api.open-meteo.com/v1/forecast?latitude='+lat+'&longitude='+lon+
+    '&current=temperature_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m,wind_gusts_10m'+
+    '&hourly=temperature_2m,precipitation_probability,weather_code&forecast_days=2&timezone=auto';
+  var r=await fetch(url);
+  if(!r.ok){ setStatus('Weather service said no ('+r.status+'). Try again.'); return; }
+  var d=await r.json();
+  var cur=d.current;
+  // next 3 hours from current time + next 6 for strip
+  var nowH=new Date(cur.time).getHours();
+  var h3=d.hourly.precipitation_probability.slice(nowH,nowH+3).map(function(p){return {precipitation_probability:p||0};});
+  var res=computeScore(cur,h3);
+  render(res,cur,d,nowH,label);
+}
+function render(res,cur,d,nowH,label){
+  setStatus('');
+  $('result').style.display='block';
+  $('scoreTxt').textContent=res.score;
+  var arc=$('arc');
+  arc.style.stroke=dialColor(res.score);
+  arc.setAttribute('stroke-dashoffset',(314*(1-res.score/100)).toFixed(1));
+  $('vhead').textContent=verdict(res.score);
+  $('vcity').textContent=label;
+  var w=wmo(cur.weather_code);
+  $('vnow').innerHTML=w[1]+' '+w[0]+' &middot; '+Math.round(cur.temperature_2m)+'&deg;C (feels '+Math.round(cur.apparent_temperature)+'&deg;) &middot; wind '+Math.round(cur.wind_speed_10m)+' km/h';
+  var rh='';
+  res.reasons.forEach(function(x){ rh+='<div class="'+(x.pts===0?'good':'')+'">'+x.txt+'<b>'+(x.pts===0?'&#10003;':x.pts)+'</b></div>'; });
+  $('reasons').innerHTML=rh;
+  var hh='';
+  for(var i=nowH;i<Math.min(nowH+6,d.hourly.time.length);i++){
+    var code=d.hourly.weather_code[i], ww=wmo(code);
+    hh+='<div class="hr"><div class="t">'+d.hourly.time[i].slice(11,16)+'</div><div class="i">'+ww[1]+'</div><div class="tmp">'+Math.round(d.hourly.temperature_2m[i])+'&deg;</div><div class="pp">'+(d.hourly.precipitation_probability[i]||0)+'% rain</div></div>';
+  }
+  $('hours').innerHTML=hh;
+}
+async function byCity(){
+  var q=$('city').value.trim();
+  if(!q){ setStatus('Type a city first.'); return; }
+  setStatus('Finding '+q+'...');
+  var r=await fetch('https://geocoding-api.open-meteo.com/v1/search?name='+encodeURIComponent(q)+'&count=1&language=en');
+  var d=await r.json();
+  if(!d.results||!d.results.length){ setStatus('Could not find "'+q+'". Try a bigger nearby city.'); return; }
+  var g=d.results[0];
+  decide(g.latitude,g.longitude,g.name+(g.country?', '+g.country:''));
+}
+$('go').onclick=byCity;
+$('city').addEventListener('keydown',function(e){ if(e.key==='Enter') byCity(); });
+$('geoBtn').onclick=function(){
+  if(!navigator.geolocation){ setStatus('Geolocation not available here.'); return; }
+  setStatus('Locating you...');
+  navigator.geolocation.getCurrentPosition(
+    function(p){ decide(p.coords.latitude.toFixed(4),p.coords.longitude.toFixed(4),'Your location'); },
+    function(){ setStatus('Location denied - type your city instead.'); },
+    {timeout:8000}
+  );
+};
+</script>
+</body>
+</html>
