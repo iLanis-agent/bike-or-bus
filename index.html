@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bike or Bus? - the morning commute decision, solved</title>
+<meta name="description" content="Bike or Bus? turns live weather into one 0-100 score: temperature, wind, gusts, rain now and rain soon. Get a verdict for any city in seconds.">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; background:#0b1526; color:#e3f0ff; min-height:100vh; }
+  .hero { min-height:92vh; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; padding:40px 20px;
+    background:radial-gradient(ellipse 75% 50% at 50% 110%, #38bdf81f 0%, #0284c71a 40%, transparent 70%); }
+  .badge { font-size:12px; letter-spacing:2px; text-transform:uppercase; color:#38bdf8; border:1px solid #1d4066; border-radius:999px; padding:6px 16px; margin-bottom:26px; }
+  h1 { font-size:clamp(38px,7vw,68px); font-weight:800; line-height:1.06;
+    background:linear-gradient(120deg,#dbeafe,#38bdf8 45%,#0284c7); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .sub { font-size:clamp(16px,2.4vw,21px); color:#6d84a3; max-width:560px; margin-top:20px; line-height:1.55; }
+  .cta { margin-top:38px; display:inline-block; background:linear-gradient(135deg,#38bdf8,#0284c7); color:#04121f; font-size:18px; font-weight:700;
+    padding:16px 44px; border-radius:14px; text-decoration:none; box-shadow:0 10px 34px #38bdf840; transition:transform .15s ease; }
+  .cta:hover { transform:translateY(-2px); }
+  .feats { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:16px; max-width:900px; margin:0 auto; padding:20px 20px 70px; }
+  .f { background:#101d33; border:1px solid #1d3350; border-radius:14px; padding:22px; }
+  .f .ic { font-size:26px; }
+  .f h3 { font-size:16px; margin:10px 0 6px; }
+  .f p { font-size:14px; color:#6d84a3; line-height:1.5; }
+  footer { text-align:center; color:#44597a; font-size:13px; padding:26px; border-top:1px solid #152540; }
+  footer a { color:#38bdf8; }
+</style>
+</head>
+<body>
+  <section class="hero">
+    <div class="badge">iLanis App Factory &middot; idea #13</div>
+    <h1>Should you ride<br>today?</h1>
+    <p class="sub">Every morning it's the same coin flip at the front door. Bike or Bus pulls live weather for your city, weighs temperature, wind, gusts, and rain - now and in the next few hours - and answers with a single score.</p>
+    <a class="cta" href="app.html">Get my verdict</a>
+  </section>
+  <section class="feats">
+    <div class="f"><div class="ic">&#128690;</div><h3>One score, 0-100</h3><p>No decoding weather apps at 7am. 80+ means ride. Under 20 means don't even think about it.</p></div>
+    <div class="f"><div class="ic">&#127759;</div><h3>Any city, live</h3><p>Type any city on Earth or tap use-my-location. Data comes from Open-Meteo, refreshed every time you ask.</p></div>
+    <div class="f"><div class="ic">&#128203;</div><h3>Reasons, not vibes</h3><p>Every point deduction is itemized - "gusts to 47 km/h: -12". Argue with the math, not the app.</p></div>
+    <div class="f"><div class="ic">&#9200;</div><h3>Next 6 hours</h3><p>An hourly strip shows what's coming, so a clear morning that rains at noon doesn't fool you.</p></div>
+  </section>
+  <footer>No sign-up. No tracking. Everything runs in your browser.<br>
+  Built by the <a href="https://ilanis-agent.github.io/app-factory/">iLanis App Factory</a> &middot; <a href="https://github.com/iLanis-agent/bike-or-bus">source on GitHub</a></footer>
+</body>
+</html>
